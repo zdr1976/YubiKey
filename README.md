@@ -59,7 +59,7 @@ Python 3.6 (or later) library and command line tool for configuring a `YubiKey`.
 
 With this comand you configure and get information aboout your `YubiKey`.
 
-Example:
+**Example:**
 ![ykman list and info](./images/ykman.png)
 
 This package provide command:
@@ -80,6 +80,38 @@ following credentials:
 on its own providing strong single factor authentication.
 
 *USB Interface: OTP*
+
+##### Writing a new password to the second slot
+Newer `Yubikeys` (Yubikey 2+) have the ability to store two separate configurations.
+The first is generally used for OTPs, the second for a strong, static password.
+If the button is pressed shortly, something up to 1.5 seconds, the first
+configuration is triggered. If the button is pressed longer, in the range of
+2.5 to 5 seconds, the second configuration is triggered. 
+
+This password can be generated in `YubiKey` (complies with most password policy requirements)
+or provided. The maximum length is 38 characters wihis is also default value.
+
+> Note: the generated portion should comprise only part of your complete
+> password - more specifically, the end of it. For security, prepend a password
+> of your choosing to the generated password to create a "something you know"
+> and "something you have" scenario.
+
+**Example:**
+
+generate a random static password in Yubikey's config slot 2
+```bash
+ykman otp static 2 --generate --length 16 --keyboard-layout US
+```
+
+set a custom password in in Yubikey's config slot 2
+```bash
+ykman otp static 2 P@ssw0rd1234 --keyboard-layout US
+```
+
+Usage:
+The best usage in my opinion is to complete (See note above) password used for
+password manager where you store all of your other passwors and credential
+informations. Basicaly this can by used in any situation requared entering password.
 
 #### U2F
 The `U2F` application can hold an unlimited number of `U2F credentials` and is
