@@ -18,6 +18,53 @@ each other and can be used simultaneously.
 The `YubiKey NEO` has **USB 2.0** and **NFC** interfaces. All of the applications are
 available through these interfaces. The NFC interface also supports `MIFARE Classic 1k.`
 
+## Installation
+
+You need to install some packages first to utilize all five application mentioned
+above.
+
+```bash
+dnf install pcsc-lite ykpers yubikey-manager
+```
+
+Now enable and start `pcscd` service.
+```bash
+systemctl enable pcscd
+systemctl start pcscd
+```
+
+Now check if both services (pcscd and pcscd.socket) are up and running.
+![PCSCD services status](./images/pcscd_status.png)
+
+### pcsc-lite
+The purpose of PC/SC Lite is to provide a Windows(R) `SCard` interface
+in a very small form factor for communicating to `smartcards` and
+readers.  PC/SC Lite uses the same `winscard API` as used under
+Windows(R).  This package includes the PC/SC Lite daemon, a resource
+manager that coordinates communications with smart card readers and
+smart cards that are connected to the system, as well as other command
+line tools.
+
+### ykpers
+The YubiKey Personalization package contains a library and command line tool
+used to personalize (i.e., set a `AES` key) `YubiKeys`.
+
+This package also provides commands:
+- [ykchalrespm](https://developers.yubico.com/yubikey-personalization/Manuals/ykchalresp.1.html)
+- [ykinfo](https://developers.yubico.com/yubikey-personalization/Manuals/ykinfo.1.html)
+- [ykpersonalize](https://developers.yubico.com/yubikey-personalization/Manuals/ykpersonalize.1.html)
+
+### ykpers
+Python 3.6 (or later) library and command line tool for configuring a `YubiKey`.
+
+With this comand you configure and get information aboout your `YubiKey`.
+
+Example:
+![ykman list and info](./images/ykman.png)
+
+This package provide command:
+- [ykman](https://developers.yubico.com/yubikey-manager/)
+
 ### Aplications
 
 #### OTP
@@ -28,6 +75,9 @@ following credentials:
 - HMAC-SHA1 Challenge-Response
 - Static Password
 - OATH-HOTP
+
+`OTP` can be used as the second factor in a 2-factor authentication scheme or
+on its own providing strong single factor authentication.
 
 *USB Interface: OTP*
 
@@ -62,45 +112,4 @@ Supported Algorithms:
 
 *USB Interface: CCID*
 
-## Installation
 
-You need to install some packages first to utilize all five application mentioned
-above.
-
-```bash
-dnf install pcsc-lite ykpers yubikey-manager
-```
-
-Now enable and start `pcscd` service.
-```bash
-systemctl enable pcscd
-systemctl start pcscd
-```
-
-Now check if both services (pcscd and pcscd.socket) are up and running.
-![PCSCD services status](./images/pcscd_status.png)
-
-
-### pcsc-lite
-The purpose of PC/SC Lite is to provide a Windows(R) `SCard` interface
-in a very small form factor for communicating to `smartcards` and
-readers.  PC/SC Lite uses the same `winscard API` as used under
-Windows(R).  This package includes the PC/SC Lite daemon, a resource
-manager that coordinates communications with smart card readers and
-smart cards that are connected to the system, as well as other command
-line tools.
-
-### ykpers
-The YubiKey Personalization package contains a library and command line tool
-used to personalize (i.e., set a `AES` key) `YubiKeys`.
-
-This package also provides commands:
-- [ykchalrespm](https://developers.yubico.com/yubikey-personalization/Manuals/ykchalresp.1.html),
-- [ykinfo](https://developers.yubico.com/yubikey-personalization/Manuals/ykinfo.1.html)
-- [ykpersonalize](https://developers.yubico.com/yubikey-personalization/Manuals/ykpersonalize.1.html)
-
-### ykpers
-Python 3.6 (or later) library and command line tool for configuring a `YubiKey`.
-
-This package provide command:
-- [ykman](https://developers.yubico.com/yubikey-manager/)
