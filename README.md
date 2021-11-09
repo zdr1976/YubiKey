@@ -24,7 +24,7 @@ You need to install some packages first to utilize all five application mentione
 above.
 
 ```bash
-dnf install pcsc-lite ykpers yubikey-manager
+dnf install pcsc-lite ykpers yubikey-manager yubico-piv-tool
 ```
 
 Now enable and start `pcscd` service.
@@ -63,8 +63,17 @@ This package provide command:
 Get some information about your `YubiKey`
 ![ykman list and info](./images/ykman.png)
 
+### yubico-piv-tool
+The Yubico PIV tool is used for interacting with the Privilege and Identification
+Card (PIV) applet on a `YubiKey`. With it you may generate keys on the device,
+importing keys and certificates, and create certificate requests, and other
+operations.
 
-## Aplications
+This package provide command:
+- [yubico-piv-tool](https://developers.yubico.com/yubico-piv-tool/YubiKey_PIV_introduction.html)
+
+
+## Applications
 
 ### OTP
 The OTP applet contains two programmable slots, each can hold one of the
@@ -77,8 +86,6 @@ following credentials:
 
 `OTP` can be used as the second factor in a 2-factor authentication scheme or
 on its own providing strong single factor authentication.
-
-*USB Interface: OTP*
 
 #### Writing a new static password to the second slot
 Newer `Yubikeys` (Yubikey 2+) have the ability to store two separate configurations.
@@ -118,8 +125,6 @@ informations. Basicaly this can by used in any situation requared entering passw
 ### U2F
 The `U2F` application can hold an unlimited number of `U2F credentials` and is
 `FIDO certified`.
-
-*USB Interface: FIDO*
 
 #### SSH support for Two-Factor (U2F/FIDO) tokens
 Starting with `OpenSSH` version `8.2` support for U2F/FIDO tokens is included.
@@ -165,8 +170,6 @@ where one-time password is valid for an unknown period of time. HOTP authenticat
 relies on a shared secret and a moving factor. Every time a new OTP is generated,
 the moving factor will be incremented and as a result generated one-time
 passwords should be different every time.
-
-*USB Interface: CCID*
 
 #### List stored accounts
 
@@ -215,7 +218,63 @@ Supported Algorithms:
 - RSA 1024
 - RSA 2048
 
-*USB Interface: CCID*
+The `YubiKey` supports the Personal Identity Verification (PIV) card interface
+specified in `NIST SP 800-73` document `Cryptographic Algorithms and Key Sizes for PIV`.
+PIV enables you to perform `RSA` or `ECC` sign/decrypt operations using a private
+key stored on the smartcard, through common interfaces like PKCS#11.
+
+`YubiKey NEO` holds 4 distinct slots for certificates (`YubiKey 4 & 5` holds 24).
+Each of these slots is capable of holding an X.509 certificate, together with
+its accompanying private key. Technically these four slots are very similar,
+but they are used for different purposes.
+
+`YubiKey NEO` available slots:
+- **9a** is for PIV Authentication (This slot is used for things like system login.)
+- **9c** is for Digital Signature (This slot is used for digital signatures for the purpose of document signing, or signing files and executables.)
+- **9d** is for Key Management (This slot is used for things like encrypting e-mails or files.)
+- **9e** is for Card Authentication (This slot is used to support additional physical access applications, such as providing physical access to buildings via PIV-enabled door locks.)
+
+You can read more about those slots [here](https://docs.yubico.com/yesdk/users-manual/application-piv/slots.html).
+
+The default `PIN` code is `123456`. The default `PUK` code is `12345678`.
+
+#### Prepare a YubiKey for real use
+Before you start using this application you should change the management key to
+make sure nobody but you can modify the state of the `PIV` application on the `YubiKey`.
+
+> Note: Make sure to keep a copy of the key around for later use.
+
+All of these commands bellow will leave traces of keys and pins in the command
+line history, this can be avoided by leaving the argument out all-together
+and the software will ask for key/pin to be input. In `Linux` system type a space
+before a command before running it in the `Bash` shell and the command will
+run normally, but won't appear in your history.
+
+```bash
+key=$(LC_CTYPE=C dd if=/dev/urandom 2>/dev/null | tr -d '[:lower:]' | tr -cd '[:xdigit:]' | fold -w48 | head -1)
+echo ${key}
+yubico-piv-tool -aset-mgm-key -n${key}
+```
+
+The `PIN` and `PUK` should be changed as well.
+```bash
+pin=$(LC_CTYPE=C dd if=/dev/urandom 2>/dev/null | tr -cd '[:digit:]' | fold -w6 | head -1)
+echo ${pin}
+```
+```bash
+puk=$(LC_CTYPE=C dd if=/dev/urandom 2>/dev/null | tr -cd '[:digit:]' | fold -w8 | head -1)
+echo ${puk}
+```
+```bash
+yubico-piv-tool -achange-pin -P123456 -N${pin}
+yubico-piv-tool -achange-puk -P12345678 -N${puk}
+```
+
+**Usage:**
+
+The best candidate for real life usage should be `OpenVPN` as already include
+support for external certificates on PKCS#11 hardware tokens or `SSH`. I didn't
+tried to utilise this functionality now but I will do one day.
 
 ---
 
@@ -226,7 +285,3 @@ which can be used with GnuPG.
 Supported Algorithms:
 - RSA 1024
 - RSA 2048
-
-*USB Interface: CCID*
-
-
