@@ -22,12 +22,12 @@ available through these interfaces. The NFC interface also supports `MIFARE Clas
 
 You need to install some packages first.
 
-```sh
+```console
 dnf install pcsc-lite ykpers yubikey-manager yubico-piv-tool
 ```
 
 Now enable and start `pcscd` service.
-```sh
+```console
 systemctl enable pcscd
 systemctl start pcscd
 ```
@@ -104,12 +104,12 @@ or provided. The maximum length is 38 characters wihis is also default value.
 **Example:**
 
 generate a random static password in Yubikey's config slot 2
-```sh
+```console
 ykman otp static 2 --generate --length 16 --keyboard-layout US
 ```
 
 set a custom password in in Yubikey's config slot 2
-```sh
+```console
 ykman otp static 2 P@ssw0rd1234 --keyboard-layout US
 ```
 
@@ -147,7 +147,7 @@ In this example I'm using `ecdsa-sk` key as i have older firmware version. But
 when you do this in real life make sure you use the `ed25519-sk` key when
 possible.
 
-```sh
+```console
 ssh-keygen -t ecdsa-sk -f ~/.ssh/id_ecdsa-sk
 ```
 ![ssh-keygen output](./images/ssh-keygen.png)
@@ -175,7 +175,7 @@ passwords should be different every time.
 If you are using your `YubiKey` for two-factor OATH authentication with
 Google, Slack or Microsoft you should already have some account in it. So
 to list them all use:
-```sh
+```console
 ykman oath accounts list
 ```
 
@@ -186,7 +186,7 @@ provide a query string to match one or more specific accounts. Accounts of
 type `HOTP`, or those that require touch, require a single match to be triggered.
 
 Generate codes for accounts starting with `Slack`:
-```sh
+```console
 ykman oath accounts code Slack
 ```
 
@@ -195,7 +195,7 @@ ykman oath accounts code Slack
 You can also create your own account if needed.
 
 Add an account, with the secret key `d7yheiow98` and the name `yubico`:
-```sh
+```console
 ykman oath accounts add yubico d7yheiow98
 or
 ykman oath accounts add yubico d7yheiow98 --touch
@@ -204,7 +204,7 @@ ykman oath accounts add yubico d7yheiow98 --touch
 #### Set a password for the OATH application
 
 You should set the password to protect your `OATH` accounts stored on `YubiKey`:
-```sh
+```console
 ykman oath access change
 ```
 
@@ -246,25 +246,25 @@ make sure nobody but you can modify the state of the `PIV` application on the `Y
 All of these commands bellow will leave traces of keys and pins in the command
 line history, this can be avoided by leaving the argument out all-together
 and the software will ask for key/pin to be input. In `Linux` system type a space
-before a command before running it in the `sh` shell and the command will
+before a command before running it in the `console` shell and the command will
 run normally, but won't appear in your history.
 
-```sh
+```console
 key=$(LC_CTYPE=C dd if=/dev/urandom 2>/dev/null | tr -d '[:lower:]' | tr -cd '[:xdigit:]' | fold -w48 | head -1)
 echo ${key}
 yubico-piv-tool -aset-mgm-key -n${key}
 ```
 
 The `PIN` and `PUK` should be changed as well.
-```sh
+```console
 pin=$(LC_CTYPE=C dd if=/dev/urandom 2>/dev/null | tr -cd '[:digit:]' | fold -w6 | head -1)
 echo ${pin}
 ```
-```sh
+```console
 puk=$(LC_CTYPE=C dd if=/dev/urandom 2>/dev/null | tr -cd '[:digit:]' | fold -w8 | head -1)
 echo ${puk}
 ```
-```sh
+```console
 yubico-piv-tool -achange-pin -P123456 -N${pin}
 yubico-piv-tool -achange-puk -P12345678 -N${puk}
 ```
@@ -293,7 +293,7 @@ So to start plug in a `YubiKey` and use `gpg` to configure it as a `smart card`.
 To get information about `smart card` configuration and also to check if `gpg`
 can communicate with your key use command:
 
-```sh
+```console
 gpg --card-status
 ```
 
@@ -324,7 +324,7 @@ Values are valid up to 127 ASCII characters and must be at least 6 (PIN) or
 
 To update the GPG PINs on the Yubikey:
 
-```sh
+```console
 gpg --card-edit
 gpg/card> admin
 Admin commands are allowed
@@ -364,7 +364,7 @@ gpg/card> quit
 The number of retry attempts can be changed as well but do this before you
 change your pins as those will be set to their default values.
 
-```sh
+```console
 ykman openpgp access set-retries 5 5 5
 ```
 
@@ -372,7 +372,7 @@ ykman openpgp access set-retries 5 5 5
 
 You can also set some optional fields on your smart card.
 
-```sh
+```console
 gpg --card-edit
 gpg/card> admin
 Admin commands are allowed
@@ -422,7 +422,7 @@ gpg/card> quit
 The currently selected key(s) are indicated with an `*`. When moving keys only one
 key should be selected at a time.
 
-```sh
+```console
 $ gpg --edit-key $KEYID
 
 Secret key is available.
@@ -444,7 +444,7 @@ You will be prompted for the master key passphrase and Admin PIN.
 
 Select and transfer the signature key.
 
-```sh
+```console
 gpg> key 2
 
 sec  rsa4096/0xFF3E7D88647EBCDB
@@ -473,7 +473,7 @@ user: "John Doe <johnc@doe.com>"
 You can use the same steps as for the `signing key` above just select the right
 key with small change.
 
-```sh
+```console
 gpg> keytocard
 Please select where to store the key:
    (2) Encryption key
@@ -485,7 +485,7 @@ Your selection? 2
 Again you can use the same steps as for the `signing key` above just select the
 right key with small change.
 
-```sh
+```console
 gpg> keytocard
 Please select where to store the key:
    (3) Authentication key
@@ -497,7 +497,7 @@ and `authentication` key.
 
 To enable this `git` functionality you need to update your *~/.gitconfig* file
 similar to this.
-```sh
+```console
 [user]
     email = john@doe.com
     name = John Doe
