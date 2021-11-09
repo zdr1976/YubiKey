@@ -22,12 +22,12 @@ available through these interfaces. The NFC interface also supports `MIFARE Clas
 
 You need to install some packages first.
 
-```bash
+```sh
 dnf install pcsc-lite ykpers yubikey-manager yubico-piv-tool
 ```
 
 Now enable and start `pcscd` service.
-```bash
+```sh
 systemctl enable pcscd
 systemctl start pcscd
 ```
@@ -104,12 +104,12 @@ or provided. The maximum length is 38 characters wihis is also default value.
 **Example:**
 
 generate a random static password in Yubikey's config slot 2
-```bash
+```sh
 ykman otp static 2 --generate --length 16 --keyboard-layout US
 ```
 
 set a custom password in in Yubikey's config slot 2
-```bash
+```sh
 ykman otp static 2 P@ssw0rd1234 --keyboard-layout US
 ```
 
@@ -143,11 +143,11 @@ The `sk` extension stands for security key.
 > Note: ed25519-sk is only supported by new versions of YubiKey with firmware
 > 5.2.3 or higher. You can check the version with command 'ykman info'.
 
-In this example I'm using `ecdsa-sk` key which is not recommended because
-apparently it has an `NSA` [back door](https://www.wired.com/2013/09/nsa-backdoor/)
-so when you do this in real life make sure you use the `ed25519-sk` key.
+In this example I'm using `ecdsa-sk` key as i have older firmware version. But
+when you do this in real life make sure you use the `ed25519-sk` key when
+possible.
 
-```bash
+```sh
 ssh-keygen -t ecdsa-sk -f ~/.ssh/id_ecdsa-sk
 ```
 ![ssh-keygen output](./images/ssh-keygen.png)
@@ -175,7 +175,7 @@ passwords should be different every time.
 If you are using your `YubiKey` for two-factor OATH authentication with
 Google, Slack or Microsoft you should already have some account in it. So
 to list them all use:
-```bash
+```sh
 ykman oath accounts list
 ```
 
@@ -186,7 +186,7 @@ provide a query string to match one or more specific accounts. Accounts of
 type `HOTP`, or those that require touch, require a single match to be triggered.
 
 Generate codes for accounts starting with `Slack`:
-```bash
+```sh
 ykman oath accounts code Slack
 ```
 
@@ -195,7 +195,7 @@ ykman oath accounts code Slack
 You can also create your own account if needed.
 
 Add an account, with the secret key `d7yheiow98` and the name `yubico`:
-```bash
+```sh
 ykman oath accounts add yubico d7yheiow98
 or
 ykman oath accounts add yubico d7yheiow98 --touch
@@ -204,7 +204,7 @@ ykman oath accounts add yubico d7yheiow98 --touch
 #### Set a password for the OATH application
 
 You should set the password to protect your `OATH` accounts stored on `YubiKey`:
-```bash
+```sh
 ykman oath access change
 ```
 
@@ -246,25 +246,25 @@ make sure nobody but you can modify the state of the `PIV` application on the `Y
 All of these commands bellow will leave traces of keys and pins in the command
 line history, this can be avoided by leaving the argument out all-together
 and the software will ask for key/pin to be input. In `Linux` system type a space
-before a command before running it in the `Bash` shell and the command will
+before a command before running it in the `sh` shell and the command will
 run normally, but won't appear in your history.
 
-```bash
+```sh
 key=$(LC_CTYPE=C dd if=/dev/urandom 2>/dev/null | tr -d '[:lower:]' | tr -cd '[:xdigit:]' | fold -w48 | head -1)
 echo ${key}
 yubico-piv-tool -aset-mgm-key -n${key}
 ```
 
 The `PIN` and `PUK` should be changed as well.
-```bash
+```sh
 pin=$(LC_CTYPE=C dd if=/dev/urandom 2>/dev/null | tr -cd '[:digit:]' | fold -w6 | head -1)
 echo ${pin}
 ```
-```bash
+```sh
 puk=$(LC_CTYPE=C dd if=/dev/urandom 2>/dev/null | tr -cd '[:digit:]' | fold -w8 | head -1)
 echo ${puk}
 ```
-```bash
+```sh
 yubico-piv-tool -achange-pin -P123456 -N${pin}
 yubico-piv-tool -achange-puk -P12345678 -N${puk}
 ```
@@ -277,10 +277,231 @@ tried to utilise this functionality now but I will do one day.
 
 ---
 
-### OpenPGP
+### GPG (Smart card)
 This application implements version 2.0 of the [OpenPGP Smart Card specification](https://g10code.com/p-card.html)
 which can be used with GnuPG.
 
-Supported Algorithms:
+Supported Algorithms for `YubiKey NEO`:
 - RSA 1024
 - RSA 2048
+
+I'm not gonna document how to create your own `GPG` key as there is plenty of articles
+about this topics. Instead i will focus on how to transfer them in to the `YubiKey`.
+
+So to start plug in a `YubiKey` and use `gpg` to configure it as a `smart card`.
+
+To get information about `smart card` configuration and also to check if `gpg`
+can communicate with your key use command:
+
+```sh
+gpg --card-status
+```
+
+The output should look like this:
+![GPG card status](./images/gpg-card-status.png)
+
+#### Change PIN
+The `GPG` interface is separate from other modules on a `Yubikey` such as
+the `PIV` interface. The `GPG` interface has its own *PIN*, *Admin PIN*, and
+*Reset Code* and these should be changed from default values!
+
+> Note: Entering the user PIN incorrectly three times will cause the PIN to
+> become blocked. It can be unblocked with either the Admin PIN or Reset Code.
+
+> Note: Entering the Admin PIN or Reset Code incorrectly three times destroys
+> all GPG data on the card. The Yubikey will have to be reconfigured.
+
+Default values for *PIN*, *Admin PIN* and *Reset code*:
+
+Name       | Default Value | Use
+-----------|---------------|-------------------------------------------------------------
+PIN        | `123456`      | decrypt and authenticate (SSH)
+Admin PIN  | `12345678`    | reset *PIN*, change *Reset Code*, add keys and owner information
+Reset code | _**None**_      | reset *PIN* ([more information](https://forum.yubico.com/viewtopicd01c.html?p=9055#p9055))
+
+Values are valid up to 127 ASCII characters and must be at least 6 (PIN) or
+8 (Admin PIN, Reset Code) characters.
+
+To update the GPG PINs on the Yubikey:
+
+```sh
+gpg --card-edit
+gpg/card> admin
+Admin commands are allowed
+
+gpg/card> passwd
+gpg: OpenPGP card no. D2760001240102010006055532110000 detected
+
+1 - change PIN
+2 - unblock PIN
+3 - change Admin PIN
+4 - set the Reset Code
+Q - quit
+
+Your selection? 3
+PIN changed.
+
+1 - change PIN
+2 - unblock PIN
+3 - change Admin PIN
+4 - set the Reset Code
+Q - quit
+
+Your selection? 1
+PIN changed.
+
+1 - change PIN
+2 - unblock PIN
+3 - change Admin PIN
+4 - set the Reset Code
+Q - quit
+
+Your selection? q
+
+gpg/card> quit
+```
+
+The number of retry attempts can be changed as well but do this before you
+change your pins as those will be set to their default values.
+
+```sh
+ykman openpgp access set-retries 5 5 5
+```
+
+#### Set information
+
+You can also set some optional fields on your smart card.
+
+```sh
+gpg --card-edit
+gpg/card> admin
+Admin commands are allowed
+
+gpg/card> name
+Cardholder's surname: Doe
+Cardholder's given name: John
+
+gpg/card> lang
+Language preferences: en
+
+gpg/card> login
+Login data (account name): john@doe.com
+
+gpg/card> list
+
+Reader ...........: Yubico Yubikey NEO OTP U2F CCID 00 00
+Application ID ...: D2760001240102010006055532110000
+Application type .: OpenPGP
+Version ..........: 2.0
+Manufacturer .....: Yubico
+Serial number ....: 05553211
+Name of cardholder: John Doe
+Language prefs ...: en
+Salutation .......: Mr.
+URL of public key : [not set]
+Login data .......: john@doe.com
+Signature PIN ....: not forced
+Key attributes ...: rsa2048 rsa2048 rsa2048
+Max. PIN lengths .: 127 127 127
+PIN retry counter : 5 5 5
+Signature counter : 0
+...
+...
+...
+
+gpg/card> quit
+```
+
+#### Transfer keys
+
+> Important: Transferring keys to YubiKey using keytocard is a destructive, one-way
+> operation only. Make sure you've made a backup before proceeding. keytocard converts
+> the local, on-disk key into a stub, which means the on-disk copy is no longer
+> usable to transfer to subsequent security key devices or mint additional keys.
+
+The currently selected key(s) are indicated with an `*`. When moving keys only one
+key should be selected at a time.
+
+```sh
+$ gpg --edit-key $KEYID
+
+Secret key is available.
+
+sec  rsa4096/0xFF3E7D88647EBCDB
+     created: 2021-11-04  expires: never       usage: SC
+     trust: ultimate      validity: ultimate
+ssb  rsa4096/0x5912A795E90DD2CF
+    created: 2021-11-04  expires: never  usage: E
+ssb  rsa2048/0x3F29127E79649A3D
+    created: 2021-11-04  expires: 2022-12-31  usage: S
+
+[ultimate] (1). John Doe <john@doe.com>
+```
+
+##### Moving signing key
+
+You will be prompted for the master key passphrase and Admin PIN.
+
+Select and transfer the signature key.
+
+```sh
+gpg> key 2
+
+sec  rsa4096/0xFF3E7D88647EBCDB
+     created: 2021-11-04  expires: never       usage: SC
+     trust: ultimate      validity: ultimate
+ssb  rsa4096/0x5912A795E90DD2CF
+    created: 2021-11-04  expires: never  usage: E
+ssb* rsa2048/0x3F29127E79649A3D
+    created: 2021-11-04  expires: 2022-12-31  usage: S
+
+[ultimate] (1). John Doe <john@doe.com>
+
+gpg> keytocard
+Please select where to store the key:
+   (1) Signature key
+   (3) Authentication key
+Your selection? 1
+
+You need a passphrase to unlock the secret key for
+user: "John Doe <johnc@doe.com>"
+4096-bit RSA key, ID 0xFF3E7D88647EBCDB, created 2021-11-04
+```
+
+#### Moving encryption key
+
+You can use the same steps as for the `signing key` above just select the right
+key with small change.
+
+```sh
+gpg> keytocard
+Please select where to store the key:
+   (2) Encryption key
+Your selection? 2
+```
+
+#### Moving authentication key
+
+Again you can use the same steps as for the `signing key` above just select the
+right key with small change.
+
+```sh
+gpg> keytocard
+Please select where to store the key:
+   (3) Authentication key
+Your selection? 3
+```
+
+I only use `signing key` to sign my `git commits` so didn't move my `encryption`
+and `authentication` key.
+
+To enable this `git` functionality you need to update your *~/.gitconfig* file
+similar to this.
+```sh
+[user]
+    email = john@doe.com
+    name = John Doe
+    signingkey = 0x3F29127E79649A3D
+[commit]
+	gpgsign = true
+```
