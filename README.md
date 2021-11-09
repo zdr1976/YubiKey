@@ -54,20 +54,19 @@ This package also provides commands:
 - [ykinfo](https://developers.yubico.com/yubikey-personalization/Manuals/ykinfo.1.html)
 - [ykpersonalize](https://developers.yubico.com/yubikey-personalization/Manuals/ykpersonalize.1.html)
 
-### ykpers
+### yubikey-manager
 Python 3.6 (or later) library and command line tool for configuring a `YubiKey`.
-
-With this comand you configure and get information aboout your `YubiKey`.
-
-**Example:**
-![ykman list and info](./images/ykman.png)
 
 This package provide command:
 - [ykman](https://developers.yubico.com/yubikey-manager/)
 
-### Aplications
+Get some information about your `YubiKey`
+![ykman list and info](./images/ykman.png)
 
-#### OTP
+
+## Aplications
+
+### OTP
 The OTP applet contains two programmable slots, each can hold one of the
 following credentials:
 
@@ -81,7 +80,7 @@ on its own providing strong single factor authentication.
 
 *USB Interface: OTP*
 
-##### Writing a new password to the second slot
+#### Writing a new password to the second slot
 Newer `Yubikeys` (Yubikey 2+) have the ability to store two separate configurations.
 The first is generally used for OTPs, the second for a strong, static password.
 If the button is pressed shortly, something up to 1.5 seconds, the first
@@ -108,24 +107,58 @@ set a custom password in in Yubikey's config slot 2
 ykman otp static 2 P@ssw0rd1234 --keyboard-layout US
 ```
 
-Usage:
+**Usage:**
+
 The best usage in my opinion is to complete (See note above) password used for
 password manager where you store all of your other passwors and credential
 informations. Basicaly this can by used in any situation requared entering password.
 
-#### U2F
+---
+
+### U2F
 The `U2F` application can hold an unlimited number of `U2F credentials` and is
 `FIDO certified`.
 
 *USB Interface: FIDO*
 
-#### OATH
+#### SSH support for Two-Factor (U2F/FIDO) tokens
+Starting with `OpenSSH` version `8.2` support for U2F/FIDO tokens is included.
+This means you have to explicitly authorize a new `SSH` session by tapping the
+`YubiKey`. The private `SSH` key, which is normally on your `SSD` or `cloud instance`,
+should be useless to a malicious user who does not have access to the physical
+`YubiKey` on which the second private key is stored.
+
+But before you should start using this you need to generate new `private key`.
+
+As of now `ssh-keygen` support two types of key supported by `YubiKey`:
+- ecdsa-sk
+- ed25519-sk
+
+The `sk` extension stands for security key.
+
+> Note: ed25519-sk is only supported by new versions of YubiKey with firmware
+> 5.2.3 or higher. You can check the version with command 'ykman info'.
+
+In this example I'm using `ecdsa-sk` key which is not recommended because
+apparently it has an `NSA` [back door](https://www.wired.com/2013/09/nsa-backdoor/)
+so when you do this in real life make sure you use the `ed25519-sk` key.
+
+```bash
+ssh-keygen -t ecdsa-sk -f ~/.ssh/id_ecdsa-sk
+```
+![ssh-keygen output](./images/ssh-keygen.png)
+
+---
+
+### OATH
 The `YubiKey NEO` series can hold up to 28 `OATH` credentials and supports both
 `OATH-TOTP` (time based) and `OATH-HOTP` (counter based).
 
 *USB Interface: CCID*
 
-#### PIV (Smart Card)
+---
+
+### PIV (Smart Card)
 This application provides a `PIV` compatible smart card.
 
 Supported Algorithms:
@@ -134,7 +167,9 @@ Supported Algorithms:
 
 *USB Interface: CCID*
 
-#### OpenPGP
+---
+
+### OpenPGP
 This application implements version 2.0 of the [OpenPGP Smart Card specification](https://g10code.com/p-card.html)
 which can be used with GnuPG.
 
