@@ -117,7 +117,7 @@ ykman otp static 2 P@ssw0rd1234 --keyboard-layout US
 
 The best usage in my opinion is to complete (See note above) password used for
 password manager where you store all of your other passwors and credential
-informations. Basicaly this can by used in any situation requared entering password.
+informations. Basicaly this can by used in any situation required entering password.
 
 ---
 
