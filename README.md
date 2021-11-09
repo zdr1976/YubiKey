@@ -20,8 +20,7 @@ available through these interfaces. The NFC interface also supports `MIFARE Clas
 
 ## Installation
 
-You need to install some packages first to utilize all five application mentioned
-above.
+You need to install some packages first.
 
 ```bash
 dnf install pcsc-lite ykpers yubikey-manager yubico-piv-tool
