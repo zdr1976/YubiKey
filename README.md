@@ -236,6 +236,7 @@ but they are used for different purposes.
 You can read more about those slots [here](https://docs.yubico.com/yesdk/users-manual/application-piv/slots.html).
 
 The default `PIN` code is `123456`. The default `PUK` code is `12345678`.
+The default 3DES `management key` (9B) is `010203040506070801020304050607080102030405060708`.
 
 #### Prepare a YubiKey for real use
 Before you start using this application you should change the management key to
