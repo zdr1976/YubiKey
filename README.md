@@ -94,7 +94,7 @@ configuration is triggered. If the button is pressed longer, in the range of
 2.5 to 5 seconds, the second configuration is triggered. 
 
 This password can be generated in `YubiKey` (complies with most password policy requirements)
-or provided. The maximum length is 38 characters wihis is also default value.
+or provided. The maximum length is 38 characters which is also default value.
 
 > Note: the generated portion should comprise only part of your complete
 > password - more specifically, the end of it. For security, prepend a password
@@ -116,8 +116,8 @@ ykman otp static 2 P@ssw0rd1234 --keyboard-layout US
 **Usage:**
 
 The best usage in my opinion is to complete (See note above) password used for
-password manager where you store all of your other passwors and credential
-informations. Basicaly this can by used in any situation required entering password.
+password manager where you store all of your other password and credential
+informations. Basically this can by used in any situation required entering password.
 
 ---
 
@@ -220,7 +220,7 @@ Supported Algorithms:
 The `YubiKey` supports the Personal Identity Verification (PIV) card interface
 specified in `NIST SP 800-73` document `Cryptographic Algorithms and Key Sizes for PIV`.
 PIV enables you to perform `RSA` or `ECC` sign/decrypt operations using a private
-key stored on the smartcard, through common interfaces like PKCS#11.
+key stored on the smart card, through common interfaces like PKCS#11.
 
 `YubiKey NEO` holds 4 distinct slots for certificates (`YubiKey 4 & 5` holds 24).
 Each of these slots is capable of holding an X.509 certificate, together with
@@ -322,7 +322,7 @@ Reset code | _**None**_      | reset *PIN* ([more information](https://forum.yub
 Values are valid up to 127 ASCII characters and must be at least 6 (PIN) or
 8 (Admin PIN, Reset Code) characters.
 
-To update the GPG PINs on the Yubikey:
+To update the GPG pin's on the Yubikey:
 
 ```console
 gpg --card-edit
@@ -504,4 +504,11 @@ similar to this.
     signingkey = 0x3F29127E79649A3D
 [commit]
 	gpgsign = true
+```
+
+#### Verify card
+
+You can verify the sub-keys have been moved to `YubiKey` as indicated by `ssb>`:
+```console
+gpg -K
 ```
